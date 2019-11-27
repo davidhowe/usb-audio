@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
 
         mHandler = MyHandler(this)
 
-        display = textView1
+        display = tv_usb_output
         editText = editText1
 
         buttonRed.setOnClickListener {

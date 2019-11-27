@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbConfiguration;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
@@ -15,13 +14,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.felhr.usbserial.CDCSerialDevice;
-import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,6 +41,8 @@ public class UsbService extends Service {
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
     private static final int BAUD_RATE = 9600; // BaudRate. Change this value if you need
     public static boolean SERVICE_CONNECTED = false;
+
+    int[] commandMinus5dB = new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,3 ,23 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0};
 
     private IBinder binder = new UsbBinder();
 
@@ -324,9 +320,35 @@ public class UsbService extends Service {
 
     }
 
+    public void writeVolumeCommand(int reg10, int reg1) {
+        Log.d(TAG, "writeVolumeCommand()");
+        Log.d(TAG, "reg10="+reg10);
+        Log.d(TAG, "reg1="+reg1);
+        int[] command = new int[]{42 ,42 ,0 ,15 ,212 ,0 ,1 ,136 ,0 ,5 ,136 ,240 ,116 ,reg10 ,reg1 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0, 0};
+        Log.d(TAG, "command.length = "+command.length);
+        byte[] buffer1 = buildI2CCommand(command);
+        int[] blankInts = new int[command.length];
+        Arrays.fill(blankInts, 0);
+        byte[] buffer2 = buildI2CCommand(blankInts);
+        int syncWriteResult1 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer1, 15, 1500);
+        int syncWriteResult2 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer2, 64, 1500);
+        Log.d(TAG, "syncWriteResult1 = "+syncWriteResult1);
+        Log.d(TAG, "syncWriteResult2 = "+syncWriteResult2);
+    }
+
     public void writeRed() {
 
-        int[] command = new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,1 ,23 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0};
+        int[] command = new int[]{
+                42 ,
+                42 ,
+                0 ,
+                13 ,
+                212 ,
+                0 ,
+                1 ,
+                16 ,
+                0 ,
+                3 ,1 ,1 ,23 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0};
         byte[] buffer1 = buildI2CCommand(command);
 
         int[] blankInts = new int[command.length];
@@ -339,10 +361,10 @@ public class UsbService extends Service {
     }
 
     public void writeGreen() {
-
+        Log.d(TAG, "writeGreen()");
         int[] command = new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,2 ,23 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0};
+        Log.d(TAG, "command.length = "+command.length);
         byte[] buffer1 = buildI2CCommand(command);
-
         int[] blankInts = new int[command.length];
         Arrays.fill(blankInts, 0);
         byte[] buffer2 = buildI2CCommand(blankInts);
@@ -361,9 +383,9 @@ public class UsbService extends Service {
         Arrays.fill(blankInts, 0);
         byte[] buffer2 = buildI2CCommand(blankInts);
         int syncWriteResult1 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer1, 13, 1500);
-        int syncWriteResult2 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer2, 13, 1500);
+        //int syncWriteResult2 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer2, 13, 1500);
         Log.d(TAG, "syncWriteResult1 = "+syncWriteResult1);
-        Log.d(TAG, "syncWriteResult2 = "+syncWriteResult2);
+        //Log.d(TAG, "syncWriteResult2 = "+syncWriteResult2);
     }
 
 

@@ -1,0 +1,163 @@
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/textViewTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:text="hearX DAC"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+        <TextView
+            android:id="@+id/tv_usb_output_sample"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="34dp"
+            android:background="#FFFFFF"
+            android:scrollbars="vertical"
+            android:gravity="bottom" />
+
+        <RadioGroup
+            android:id="@+id/rgrp_play_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_usb_output_sample"
+            android:orientation="horizontal">
+            <RadioButton
+                android:id="@+id/rbtn_pulse"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="PULSE"/>
+            <RadioButton
+                android:id="@+id/rbtn_loop"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="LOOP"/>
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/btn_play"
+            style="?borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/rgrp_play_type"
+            android:layout_marginTop="8dp"
+            android:text="PLAY"/>
+
+        <Button
+            android:id="@+id/btn_pause"
+            style="?borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btn_play"
+            android:layout_marginTop="8dp"
+            android:text="PAUSE"/>
+
+        <LinearLayout
+            android:id="@+id/llyt_gain"
+            style="?borderlessButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/btn_pause">
+
+            <Button
+                android:id="@+id/btn_minus_5"
+                style="?borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:layout_height="wrap_content"
+                android:text="- 5dB"/>
+
+            <Button
+                android:id="@+id/btn_minus_1"
+                style="?borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:layout_height="wrap_content"
+                android:text="- 1dB"/>
+
+            <Button
+                android:id="@+id/btn_plus_1"
+                style="?borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:layout_height="wrap_content"
+                android:text="+ 1dB"/>
+
+            <Button
+                android:id="@+id/btn_plus_5"
+                style="?borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:layout_height="wrap_content"
+                android:text="+ 5dB"/>
+
+        </LinearLayout>
+
+
+
+        <TextView
+            android:id="@+id/tv_current_attenuation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/llyt_gain"
+            android:layout_marginTop="16dp"
+            android:text="Current Attenuation: 0dB" />
+
+        <TextView
+            android:id="@+id/tv_file_selection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_current_attenuation"
+            android:layout_marginTop="16dp"
+            android:layout_centerHorizontal="true"
+            android:text="FILE SELECTION"/>
+
+        <Spinner
+            android:id="@+id/spin_freq"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp"
+            android:layout_below="@+id/tv_file_selection"/>
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_below="@+id/spin_freq">
+
+            <RadioButton
+                android:id="@+id/rbtn_low"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="LOW"/>
+
+            <RadioButton
+                android:id="@+id/rbtn_high"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="HIGH"/>
+
+        </RadioGroup>
+
+
+    </RelativeLayout>
+</ScrollView>
