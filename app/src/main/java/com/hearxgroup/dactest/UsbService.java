@@ -17,6 +17,7 @@ import android.util.Log;
 import com.felhr.usbserial.UsbSerialInterface;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -363,6 +364,9 @@ public class UsbService extends Service {
     public void writeGreen() {
         Log.d(TAG, "writeGreen()");
         int[] command = new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,2 ,23 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0};
+
+        Log.i(TAG, "Command test ="+AltConverter.convertToString(new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,2 ,23}));
+
         Log.d(TAG, "command.length = "+command.length);
         byte[] buffer1 = buildI2CCommand(command);
         int[] blankInts = new int[command.length];
@@ -398,9 +402,9 @@ public class UsbService extends Service {
             commandBytes[k]=(byte)(command[k]& 0xFF);
         }
 
-       /* for(int k=0; k<commandBytes.length; k++) {
-            Log.i(TAG, "commandByte="+(commandBytes[k]& 0xFF));
-        }*/
+        //Log.i(TAG, "Command="+AltConverter.convertToString(command));
+
+
         return commandBytes;
     }
 }
