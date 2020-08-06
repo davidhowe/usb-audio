@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.widget.Toast
 import android.content.*
 import android.os.Handler
-import android.widget.EditText
 import android.widget.TextView
 import android.os.IBinder
 import android.os.Message
@@ -36,8 +35,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private var usbService: UsbService? = null
-    private var display: TextView? = null
-    private var editText: EditText? = null
+    private var serial_output: TextView? = null
     private var mHandler: MyHandler? = null
     private val usbConnection = object : ServiceConnection {
         override fun onServiceConnected(arg0: ComponentName, arg1: IBinder) {
@@ -53,28 +51,24 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         mHandler = MyHandler(this)
+        this.serial_output = tv_usb_output
 
-        display = tv_usb_output
-        editText = editText1
-
-        buttonRed.setOnClickListener {
-            if (usbService != null) { // if UsbService was correctly binded, Send data
-                usbService!!.writeRed()
-            }
+        btn_clear.setOnClickListener {
+            tv_usb_output.text = ""
+            edt_id_msb.setText("")
+            edt_id_lsb.setText("")
+            edt_payload_0.setText("")
+            edt_payload_1.setText("")
+            edt_payload_2.setText("")
+            edt_payload_3.setText("")
+            edt_payload_4.setText("")
+            edt_payload_5.setText("")
+            edt_payload_6.setText("")
         }
 
-        buttonGreen.setOnClickListener {
-            if (usbService != null) { // if UsbService was correctly binded, Send data
-                usbService!!.writeGreen()
-            }
-        }
-
-        buttonBlue.setOnClickListener {
-            if (usbService != null) { // if UsbService was correctly binded, Send data
-                usbService!!.writeBlue()
-            }
+        btn_send.setOnClickListener {
+            sendSerialCommand()
         }
     }
 
@@ -134,7 +128,7 @@ class MainActivity : AppCompatActivity() {
             when (msg.what) {
                 UsbService.MESSAGE_FROM_SERIAL_PORT -> {
                     val data = msg.obj as String
-                    mActivity.get()?.display?.append(data)
+                    mActivity.get()?.serial_output?.append(data)
                 }
                 UsbService.CTS_CHANGE -> Toast.makeText(
                     mActivity.get(),
@@ -148,6 +142,61 @@ class MainActivity : AppCompatActivity() {
                 ).show()
             }
         }
+    }
+
+    private fun sendSerialCommand() {
+
+        var messageIdMSB = edt_id_msb.text.toString().trim()
+        var messageIdLSB = edt_id_lsb.text.toString().trim()
+
+        if(messageIdMSB.isNullOrEmpty())
+            messageIdMSB = "0"
+
+        if(messageIdLSB.isNullOrEmpty())
+            messageIdLSB = "0"
+
+        val payloadList = mutableListOf<String>()
+
+        if(edt_payload_0.text.toString().isNotEmpty())
+            payloadList.add(edt_payload_0.text.toString())
+
+        if(edt_payload_1.text.toString().isNotEmpty())
+            payloadList.add(edt_payload_1.text.toString())
+
+        if(edt_payload_2.text.toString().isNotEmpty())
+            payloadList.add(edt_payload_2.text.toString())
+
+        if(edt_payload_3.text.toString().isNotEmpty())
+            payloadList.add(edt_payload_3.text.toString())
+
+        if(edt_payload_4.text.toString().isNotEmpty())
+            payloadList.add(edt_payload_4.text.toString())
+
+        if(edt_payload_5.text.toString().isNotEmpty())
+            payloadList.add(edt_payload_5.text.toString())
+
+        if(edt_payload_6.text.toString().isNotEmpty())
+            payloadList.add(edt_payload_6.text.toString())
+
+        var messageList = mutableListOf(
+            "2A", //Preamble MSB
+            "2A", //Preamble LSB
+            "0", //Length MSB
+            (6 + payloadList.size + 1).toString(16), //Length LSB Total message length (header + message payload).
+            messageIdMSB, //Message ID MSB
+            messageIdLSB //Message ID LSB
+        )
+
+        messageList.addAll(payloadList)
+
+        messageList.add(
+            //Payload Size
+        )
+
+        usbService?.writeIOPMessage(
+            //IOP MESSAGE
+            messageList.toTypedArray()
+        )
     }
 
 }

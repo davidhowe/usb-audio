@@ -364,9 +364,7 @@ public class UsbService extends Service {
     public void writeGreen() {
         Log.d(TAG, "writeGreen()");
         int[] command = new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,2 ,23 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0};
-
         Log.i(TAG, "Command test ="+AltConverter.convertToString(new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,2 ,23}));
-
         Log.d(TAG, "command.length = "+command.length);
         byte[] buffer1 = buildI2CCommand(command);
         int[] blankInts = new int[command.length];
@@ -392,6 +390,23 @@ public class UsbService extends Service {
         //Log.d(TAG, "syncWriteResult2 = "+syncWriteResult2);
     }
 
+    public void writeIOPMessage(String[] hexArray) {
+        int[] command = new int[64];
+        for(int k=0; k<hexArray.length; k++) {
+            command[k] = hexToInt(hexArray[k]);
+        }
+
+        byte[] buffer1 = buildI2CCommand(command);
+        int[] blankInts = new int[command.length]; //64 length
+        Arrays.fill(blankInts, 0);
+        byte[] buffer2 = buildI2CCommand(blankInts);
+        int syncWriteResult1 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer1, buffer1.length, 1500);
+        int syncWriteResult2 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer2, buffer2.length, 1500);
+        Log.d(TAG, "syncWriteResult1 = "+syncWriteResult1);
+        Log.d(TAG, "syncWriteResult2 = "+syncWriteResult2);
+
+    }
+
 
     private byte[] buildI2CCommand(int[] command) {
         byte[] commandBytes = new byte[command.length];
@@ -406,5 +421,9 @@ public class UsbService extends Service {
 
 
         return commandBytes;
+    }
+
+    private int hexToInt(String hex) {
+        return Integer.parseInt(hex, 16);
     }
 }
