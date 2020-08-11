@@ -9,6 +9,8 @@ import android.os.Handler
 import android.widget.TextView
 import android.os.IBinder
 import android.os.Message
+import android.text.method.ScrollingMovementMethod
+import com.hearxgroup.dactest.UsbService.hexToInt
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.ref.WeakReference
 
@@ -52,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         mHandler = MyHandler(this)
+        tv_usb_output.movementMethod= ScrollingMovementMethod()
         this.serial_output = tv_usb_output
 
         btn_clear.setOnClickListener {
@@ -68,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btn_send.setOnClickListener {
+            serial_output!!.text = ""
             sendSerialCommand()
         }
     }
@@ -127,8 +131,21 @@ class MainActivity : AppCompatActivity() {
         override fun handleMessage(msg: Message) {
             when (msg.what) {
                 UsbService.MESSAGE_FROM_SERIAL_PORT -> {
-                    val data = msg.obj as String
-                    mActivity.get()?.serial_output?.append(data)
+                    var data = msg.obj as String
+                    var dataList = data.chunked(8).toMutableList()
+                    for(k in 0 until dataList.size) {
+                        when(k) {
+                            0 -> dataList[k]+=" --Preamble MSB"
+                            1 -> dataList[k]+=" --Preamble LSB"
+                            2 -> dataList[k]+=" --Length MSB"
+                            3 -> dataList[k]+=" --Length LSB"
+                            4 -> dataList[k]+=" --Message ID MSB"
+                            5 -> dataList[k]+=" --Message ID LSB \n\nPAYLOAD"
+                            else -> dataList[k]+=" --Payload[${k-6}]"
+                        }
+
+                    }
+                    mActivity.get()?.serial_output?.append(dataList.joinToString { "\n" +  it })
                 }
                 UsbService.CTS_CHANGE -> Toast.makeText(
                     mActivity.get(),
@@ -178,7 +195,7 @@ class MainActivity : AppCompatActivity() {
         if(edt_payload_6.text.toString().isNotEmpty())
             payloadList.add(edt_payload_6.text.toString())
 
-        var messageList = mutableListOf(
+        val messageList = mutableListOf(
             "2A", //Preamble MSB
             "2A", //Preamble LSB
             "0", //Length MSB
@@ -191,6 +208,7 @@ class MainActivity : AppCompatActivity() {
 
         messageList.add(
             //Payload Size
+            payloadList.map { hexToInt(it) }.sum().toString(16)
         )
 
         usbService?.writeIOPMessage(

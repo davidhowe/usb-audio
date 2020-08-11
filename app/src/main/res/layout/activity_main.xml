@@ -30,6 +30,7 @@
         android:layout_marginTop="28dp"
         android:hint="Message ID MSB"
         android:maxLength="2"
+        android:inputType="textCapCharacters"
         android:ems="2"/>
 
     <EditText
@@ -40,6 +41,7 @@
         android:layout_marginTop="8dp"
         android:hint="Message ID LSB"
         android:maxLength="2"
+        android:inputType="textCapCharacters"
         android:ems="2"/>
 
     <TextView

@@ -75,6 +75,8 @@ public class CP2615SerialDevice extends UsbSerialDevice
     private boolean ctsState;
     private boolean dsrState;
 
+    private boolean readSetup = false;
+
     private UsbCTSCallback ctsCallback;
     private UsbDSRCallback dsrCallback;
 
@@ -124,19 +126,74 @@ public class CP2615SerialDevice extends UsbSerialDevice
         return inEndpoint;
     }
 
+    public void setupForRead() {
+        if(!readSetup) {
+            readSetup = true;
+            UsbRequest requestIN = new SafeUsbRequest();
+            requestIN.initialize(connection, inEndpoint);
+            this.workerThread.setUsbRequest(requestIN);
+        }
+    }
+
+    public void printDeviceStatus() {
+        Log.d(TAG, "printDeviceStatus()");
+        Log.d(TAG, "asyncMode="+asyncMode);
+        if(readThread!=null) {
+            Log.d(TAG, "readThread not null");
+        } else {
+            Log.d(TAG, "readThread is null");
+        }
+
+        if(workerThread!=null) {
+            Log.d(TAG, "workerThread not null");
+            if(workerThread.getUsbRequest()!=null)
+                Log.d(TAG, "workerThread getUsbRequest not null");
+            else
+                Log.d(TAG, "workerThread getUsbRequest is null");
+        } else {
+            Log.d(TAG, "workerThread is null");
+        }
+
+
+
+
+        if(getOutEndpoint()!=null)
+            Log.d(TAG, "outEndpoint not null");
+        else
+            Log.d(TAG, "outEndpoint is null");
+
+        if(getInEndpoint()!=null)
+            Log.d(TAG, "inEndpoint not null");
+        else
+            Log.d(TAG, "inEndpoint is null");
+
+        if(serialBuffer!=null) {
+            Log.d(TAG, "serialBuffer not null");
+            if(serialBuffer.getReadBuffer()!=null)
+                Log.d(TAG, "serialBuffer readbuffer not null");
+            else
+                Log.d(TAG, "serialBuffer readbuffer is null");
+        }
+        else
+            Log.d(TAG, "serialBuffer is null");
+    }
+
     @Override
     public boolean open()
     {
+        Log.d(TAG, "open()");
+
         boolean ret = openCP2615IOLink();
+
+        Log.d(TAG, "ret="+ret);
 
         if(ret)
         {
             // Initialize UsbRequest
             UsbRequest requestIN = new SafeUsbRequest();
             requestIN.initialize(connection, inEndpoint);
-
             // Restart the working thread if it has been killed before and  get and claim interface
-            //restartWorkingThread();
+            restartWorkingThread();
             //restartWriteThread();
 
             // Create Flow control thread but it will only be started if necessary
@@ -159,6 +216,7 @@ public class CP2615SerialDevice extends UsbSerialDevice
     @Override
     public void close()
     {
+        Log.d(TAG, "close()");
         //setControlCommand(CP210x_PURGE, CP210x_PURGE_ALL, null);
         //setControlCommand(CP210x_IFC_ENABLE, CP210x_UART_DISABLE, null);
         killWorkingThread();
@@ -534,6 +592,8 @@ public class CP2615SerialDevice extends UsbSerialDevice
 
     private boolean openCP2615IOLink()
     {
+        Log.d(TAG, "openCP2615IOLink()");
+
         if(connection.claimInterface(mInterface, true))
         {
             connection.setInterface(mInterface);

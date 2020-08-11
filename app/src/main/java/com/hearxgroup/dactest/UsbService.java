@@ -9,12 +9,14 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.hardware.usb.UsbRequest;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
 import com.felhr.usbserial.UsbSerialInterface;
+import com.felhr.utils.SafeUsbRequest;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
@@ -51,6 +53,7 @@ public class UsbService extends Service {
     private Handler mHandler;
     private UsbManager usbManager;
     private UsbDevice device;
+    private boolean readCallbackSet = false;
     private UsbDeviceConnection connection;
     private CP2615SerialDevice serialPort;
 
@@ -65,9 +68,17 @@ public class UsbService extends Service {
         public void onReceivedData(byte[] arg0) {
             try {
                 Log.d(TAG, "onReceivedData");
+                int[] intArr = new int[arg0.length];
+                for(int k=0; k<arg0.length; k++) {
+                    intArr[k] = (int)arg0[k];
+                    //Log.d(TAG, "byteEntry="+(int)byteEntry);
+                }
+                String convertedData = AltConverter.convertToString(intArr);
+                Log.d(TAG, "convertedData="+convertedData);
                 String data = new String(arg0, "UTF-8");
+                Log.d(TAG, "data="+data);
                 if (mHandler != null)
-                    mHandler.obtainMessage(MESSAGE_FROM_SERIAL_PORT, data).sendToTarget();
+                    mHandler.obtainMessage(MESSAGE_FROM_SERIAL_PORT, convertedData).sendToTarget();
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
@@ -263,20 +274,20 @@ public class UsbService extends Service {
                 if (serialPort.open()) {
                     Log.d(TAG, "serialPort.open()");
                     serialPortConnected = true;
-                    /*serialPort.setBaudRate(BAUD_RATE);
+                    serialPort.setBaudRate(BAUD_RATE);
                     serialPort.setDataBits(UsbSerialInterface.DATA_BITS_8);
                     serialPort.setStopBits(UsbSerialInterface.STOP_BITS_1);
                     serialPort.setParity(UsbSerialInterface.PARITY_NONE);
-                    *//*
+                    /*
                      * Current flow control Options:
                      * UsbSerialInterface.FLOW_CONTROL_OFF
                      * UsbSerialInterface.FLOW_CONTROL_RTS_CTS only for CP2102 and FT232
                      * UsbSerialInterface.FLOW_CONTROL_DSR_DTR only for CP2102 and FT232
-                     *//*
+                     */
                     serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
-                    serialPort.read(mCallback);
+                    //serialPort.read(mCallback);
                     serialPort.getCTS(ctsCallback);
-                    serialPort.getDSR(dsrCallback);*/
+                    serialPort.getDSR(dsrCallback);
 
                     //
                     // Some Arduinos would need some sleep because firmware wait some time to know whether a new sketch is going
@@ -364,7 +375,7 @@ public class UsbService extends Service {
     public void writeGreen() {
         Log.d(TAG, "writeGreen()");
         int[] command = new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,2 ,23 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0};
-        Log.i(TAG, "Command test ="+AltConverter.convertToString(new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,2 ,23}));
+        Log.i(TAG, "Command Hex ="+AltConverter.convertToString(new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,2 ,23}));
         Log.d(TAG, "command.length = "+command.length);
         byte[] buffer1 = buildI2CCommand(command);
         int[] blankInts = new int[command.length];
@@ -391,20 +402,38 @@ public class UsbService extends Service {
     }
 
     public void writeIOPMessage(String[] hexArray) {
+
+        Log.i(TAG, "writeIOPMessage");
+
+        String requestedHex = "";
         int[] command = new int[64];
         for(int k=0; k<hexArray.length; k++) {
+            requestedHex+=hexArray[k];
             command[k] = hexToInt(hexArray[k]);
         }
+
+        Log.i(TAG, "requestedHex="+requestedHex);
+
+
+        Log.i(TAG, "Command Hex ="+AltConverter.convertToString(command));
+        int buffer1Length =
+        Log.i(TAG, "requestedHex="+requestedHex);
 
         byte[] buffer1 = buildI2CCommand(command);
         int[] blankInts = new int[command.length]; //64 length
         Arrays.fill(blankInts, 0);
         byte[] buffer2 = buildI2CCommand(blankInts);
-        int syncWriteResult1 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer1, buffer1.length, 1500);
+        int syncWriteResult1 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer1, buffer1.length, 1500); //todo check buffer length
         int syncWriteResult2 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer2, buffer2.length, 1500);
         Log.d(TAG, "syncWriteResult1 = "+syncWriteResult1);
         Log.d(TAG, "syncWriteResult2 = "+syncWriteResult2);
 
+        serialPort.printDeviceStatus();
+        serialPort.setupForRead();
+        if(!readCallbackSet) {
+            readCallbackSet = true;
+            serialPort.read(mCallback);
+        }
     }
 
 
@@ -423,7 +452,7 @@ public class UsbService extends Service {
         return commandBytes;
     }
 
-    private int hexToInt(String hex) {
+    public static int hexToInt(String hex) {
         return Integer.parseInt(hex, 16);
     }
 }
