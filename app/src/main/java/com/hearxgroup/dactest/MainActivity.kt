@@ -74,6 +74,10 @@ class MainActivity : AppCompatActivity() {
             serial_output!!.text = ""
             sendSerialCommand()
         }
+
+        iv_bug.setOnClickListener {
+            startActivity(Intent(this, SamplePlaybackActivity::class.java))
+        }
     }
 
     public override fun onResume() {

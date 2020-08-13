@@ -19,6 +19,7 @@
             android:name="com.hearxgroup.dactest.MainActivity"
             android:label="@string/title_activity_main"
             android:windowSoftInputMode="adjustPan"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,6 +30,8 @@
         <activity
             android:name="com.hearxgroup.dactest.SamplePlaybackActivity"
             android:label="@string/title_activity_main"
+            android:windowSoftInputMode="adjustPan"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar">
 
         </activity>
