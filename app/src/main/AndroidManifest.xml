@@ -16,29 +16,33 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.hearxgroup.dactest.MainActivity"
-            android:label="@string/title_activity_main"
-            android:windowSoftInputMode="adjustPan"
+            android:name=".LaunchActivity"
             android:launchMode="singleTop"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:label="@string/title_launcher"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
-            android:name="com.hearxgroup.dactest.SamplePlaybackActivity"
-            android:label="@string/title_activity_main"
-            android:windowSoftInputMode="adjustPan"
+            android:name=".DACV3RawActivity"
+            android:label="@string/title_launcher"
+            android:parentActivityName=".LaunchActivity"
             android:launchMode="singleTop"
-            android:theme="@style/AppTheme.NoActionBar">
-
-        </activity>
-
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustPan"/>
+        <activity
+            android:name=".DACV2Activity"
+            android:label="@string/title_launcher"
+            android:parentActivityName=".LaunchActivity"
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustPan"/>
         <service
             android:name=".UsbService"
-            android:enabled="true"></service>
+            android:enabled="true" />
     </application>
 
 </manifest>

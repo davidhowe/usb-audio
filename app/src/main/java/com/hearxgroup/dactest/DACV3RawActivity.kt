@@ -11,10 +11,10 @@ import android.os.IBinder
 import android.os.Message
 import android.text.method.ScrollingMovementMethod
 import com.hearxgroup.dactest.UsbService.hexToInt
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_dac_v3_raw.*
 import java.lang.ref.WeakReference
 
-class MainActivity : AppCompatActivity() {
+class DACV3RawActivity : AppCompatActivity() {
 
     /*
      * Notifications from UsbService will be received here.
@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_dac_v3_raw)
         mHandler = MyHandler(this)
         tv_usb_output.movementMethod= ScrollingMovementMethod()
         this.serial_output = tv_usb_output
@@ -73,10 +73,6 @@ class MainActivity : AppCompatActivity() {
         btn_send.setOnClickListener {
             serial_output!!.text = ""
             sendSerialCommand()
-        }
-
-        iv_bug.setOnClickListener {
-            startActivity(Intent(this, SamplePlaybackActivity::class.java))
         }
     }
 
@@ -129,8 +125,8 @@ class MainActivity : AppCompatActivity() {
     /*
      * This handler will be passed to UsbService. Data received from serial port is displayed through this handler
      */
-    private class MyHandler(activity: MainActivity) : Handler() {
-        private val mActivity: WeakReference<MainActivity> = WeakReference(activity)
+    private class MyHandler(activity: DACV3RawActivity) : Handler() {
+        private val mActivity: WeakReference<DACV3RawActivity> = WeakReference(activity)
 
         override fun handleMessage(msg: Message) {
             when (msg.what) {

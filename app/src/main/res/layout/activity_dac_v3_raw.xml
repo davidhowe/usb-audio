@@ -4,14 +4,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="16dp">
 
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/iv_bug"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        app:srcCompat="@drawable/ic_bug"/>
-
     <TextView
         android:id="@+id/textViewTitle"
         android:layout_width="wrap_content"

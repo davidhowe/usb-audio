@@ -10,11 +10,11 @@ import android.media.SoundPool
 import android.os.*
 import android.util.Log
 import android.widget.ArrayAdapter
-import kotlinx.android.synthetic.main.activity_sample_playback.*
+import kotlinx.android.synthetic.main.activity_dac_v2.*
 import java.io.File
 import java.lang.ref.WeakReference
 
-class SamplePlaybackActivity : AppCompatActivity() {
+class DACV2Activity : AppCompatActivity() {
 
     private var soundPool: SoundPool? = null
     private lateinit var audioManager: AudioManager
@@ -59,7 +59,7 @@ class SamplePlaybackActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_sample_playback)
+        setContentView(R.layout.activity_dac_v2)
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
@@ -206,8 +206,8 @@ class SamplePlaybackActivity : AppCompatActivity() {
     /*
      * This handler will be passed to UsbService. Data received from serial port is displayed through this handler
      */
-    private class MyHandler(activity: SamplePlaybackActivity) : Handler() {
-        private val mActivity: WeakReference<SamplePlaybackActivity> = WeakReference(activity)
+    private class MyHandler(activity: DACV2Activity) : Handler() {
+        private val mActivity: WeakReference<DACV2Activity> = WeakReference(activity)
 
         override fun handleMessage(msg: Message) {
             when (msg.what) {
@@ -273,7 +273,7 @@ class SamplePlaybackActivity : AppCompatActivity() {
         )
 
         val filePath = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_DCIM).toString()+ File.separator+"dacfiles"+File.separator+"f${freq}_${if(low)"low" else "high"}.ogg"
+            Environment.DIRECTORY_DCIM).toString()+ File.separator+"dacfiles"+File.separator+"f${freq}_${if(low)"low" else "high"}.wav"
         Log.d("","filePath=$filePath")
         return soundPool!!.load(filePath, 1)
     }
