@@ -16,6 +16,7 @@ import java.lang.ref.WeakReference
 
 class DACV2Activity : AppCompatActivity() {
 
+    val TAG = DACV2Activity::class.java.name
     private var soundPool: SoundPool? = null
     private lateinit var audioManager: AudioManager
 
@@ -25,6 +26,7 @@ class DACV2Activity : AppCompatActivity() {
     private val mUsbReceiver = object : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
+            Log.d(TAG, "intent.action=${intent.action}")
             when (intent.action) {
                 UsbService.ACTION_USB_PERMISSION_GRANTED // USB PERMISSION GRANTED
                 -> Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show()
@@ -43,11 +45,13 @@ class DACV2Activity : AppCompatActivity() {
     private var mHandler: MyHandler? = null
     private val usbConnection = object : ServiceConnection {
         override fun onServiceConnected(arg0: ComponentName, arg1: IBinder) {
+            Log.d(TAG, "onServiceConnected")
             usbService = (arg1 as UsbService.UsbBinder).service
             usbService!!.setHandler(mHandler)
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
+            Log.d(TAG, "onServiceDisconnected")
             usbService = null
         }
     }
@@ -150,6 +154,7 @@ class DACV2Activity : AppCompatActivity() {
     }
 
     public override fun onResume() {
+        Log.d(TAG, "onResume")
         super.onResume()
         setFilters()  // Start listening notifications from UsbService
         startService(
@@ -160,6 +165,7 @@ class DACV2Activity : AppCompatActivity() {
     }
 
     public override fun onPause() {
+        Log.d(TAG, "onPause")
         super.onPause()
         unregisterReceiver(mUsbReceiver)
         unbindService(usbConnection)
@@ -210,6 +216,8 @@ class DACV2Activity : AppCompatActivity() {
         private val mActivity: WeakReference<DACV2Activity> = WeakReference(activity)
 
         override fun handleMessage(msg: Message) {
+            Log.d("handleMessage","${msg.what}")
+
             when (msg.what) {
                 UsbService.MESSAGE_FROM_SERIAL_PORT -> {
                     val data = msg.obj as String
@@ -273,7 +281,7 @@ class DACV2Activity : AppCompatActivity() {
         )
 
         val filePath = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_DCIM).toString()+ File.separator+"dacfiles"+File.separator+"f${freq}_${if(low)"low" else "high"}.wav"
+            Environment.DIRECTORY_DCIM).toString()+ File.separator+"dacfiles"+File.separator+"f${freq}_${if(low)"low" else "high"}.ogg"
         Log.d("","filePath=$filePath")
         return soundPool!!.load(filePath, 1)
     }

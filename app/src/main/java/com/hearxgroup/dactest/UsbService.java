@@ -42,10 +42,7 @@ public class UsbService extends Service {
     public static final int CTS_CHANGE = 1;
     public static final int DSR_CHANGE = 2;
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
-    private static final int BAUD_RATE = 9600; // BaudRate. Change this value if you need
     public static boolean SERVICE_CONNECTED = false;
-
-    int[] commandMinus5dB = new int[]{42 ,42 ,0 ,13 ,212 ,0 ,1 ,16 ,0 ,3 ,1 ,3 ,23 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0};
 
     private IBinder binder = new UsbBinder();
 
@@ -82,28 +79,6 @@ public class UsbService extends Service {
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-        }
-    };
-
-    /*
-     * State changes in the CTS line will be received here
-     */
-    private UsbSerialInterface.UsbCTSCallback ctsCallback = new UsbSerialInterface.UsbCTSCallback() {
-        @Override
-        public void onCTSChanged(boolean state) {
-            if(mHandler != null)
-                mHandler.obtainMessage(CTS_CHANGE).sendToTarget();
-        }
-    };
-
-    /*
-     * State changes in the DSR line will be received here
-     */
-    private UsbSerialInterface.UsbDSRCallback dsrCallback = new UsbSerialInterface.UsbDSRCallback() {
-        @Override
-        public void onDSRChanged(boolean state) {
-            if(mHandler != null)
-                mHandler.obtainMessage(DSR_CHANGE).sendToTarget();
         }
     };
     /*
@@ -269,25 +244,24 @@ public class UsbService extends Service {
     private class ConnectionThread extends Thread {
         @Override
         public void run() {
-            serialPort = new CP2615SerialDevice(device, connection, 3); //UsbSerialDevice.createUsbSerialDevice(device, connection);//new CP2102SerialDevice(device, connection, -1);//
+            serialPort = new CP2615SerialDevice(device, connection, 6); //UsbSerialDevice.createUsbSerialDevice(device, connection);//new CP2102SerialDevice(device, connection, -1);//
             if (serialPort != null) {
                 if (serialPort.open()) {
                     Log.d(TAG, "serialPort.open()");
                     serialPortConnected = true;
-                    serialPort.setBaudRate(BAUD_RATE);
+                   /* serialPort.setBaudRate(44100);
                     serialPort.setDataBits(UsbSerialInterface.DATA_BITS_8);
-                    serialPort.setStopBits(UsbSerialInterface.STOP_BITS_1);
-                    serialPort.setParity(UsbSerialInterface.PARITY_NONE);
+                    serialPort.setParity(UsbSerialInterface.PARITY_ODD);*/
                     /*
                      * Current flow control Options:
                      * UsbSerialInterface.FLOW_CONTROL_OFF
                      * UsbSerialInterface.FLOW_CONTROL_RTS_CTS only for CP2102 and FT232
                      * UsbSerialInterface.FLOW_CONTROL_DSR_DTR only for CP2102 and FT232
                      */
-                    serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
+                    //serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
                     //serialPort.read(mCallback);
-                    serialPort.getCTS(ctsCallback);
-                    serialPort.getDSR(dsrCallback);
+                    //serialPort.getCTS(ctsCallback);
+                    //serialPort.getDSR(dsrCallback);
 
                     //
                     // Some Arduinos would need some sleep because firmware wait some time to know whether a new sketch is going
@@ -298,7 +272,7 @@ public class UsbService extends Service {
 
                     //ATTEMPT TO SEND COMMAND TO CHANGE LIGHT COLOUR
 
-                    writeGreen();
+                    //writeGreen();
 
 
                     Intent intent = new Intent(ACTION_USB_READY);
@@ -320,18 +294,6 @@ public class UsbService extends Service {
         }
     }
 
-    //doI2cTransfer(slave, 0, bytes(xfer))
-
-    //slave = 16
-    //read = 0
-    private void doI2cTransfer(int slave, int read, byte[] data) {
-
-        //1. do write
-
-        //2. do read
-
-    }
-
     public void writeVolumeCommand(int reg10, int reg1) {
         Log.d(TAG, "writeVolumeCommand()");
         Log.d(TAG, "reg10="+reg10);
@@ -342,10 +304,20 @@ public class UsbService extends Service {
         int[] blankInts = new int[command.length];
         Arrays.fill(blankInts, 0);
         byte[] buffer2 = buildI2CCommand(blankInts);
+        //serialPort.write(buffer1);
+        //serialPort.write(buffer2);
         int syncWriteResult1 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer1, 15, 1500);
         int syncWriteResult2 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer2, 64, 1500);
-        Log.d(TAG, "syncWriteResult1 = "+syncWriteResult1);
-        Log.d(TAG, "syncWriteResult2 = "+syncWriteResult2);
+
+        /*Log.d(TAG, "syncWriteResult1 = "+syncWriteResult1);
+        Log.d(TAG, "syncWriteResult2 = "+syncWriteResult2);*/
+
+        serialPort.printDeviceStatus();
+        serialPort.setupForRead();
+        if(!readCallbackSet) {
+            readCallbackSet = true;
+            serialPort.read(mCallback);
+        }
     }
 
     public void writeRed() {
@@ -385,6 +357,14 @@ public class UsbService extends Service {
         int syncWriteResult2 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer2, 13, 1500);
         Log.d(TAG, "syncWriteResult1 = "+syncWriteResult1);
         Log.d(TAG, "syncWriteResult2 = "+syncWriteResult2);
+
+        //NEW
+        serialPort.printDeviceStatus();
+        serialPort.setupForRead();
+        if(!readCallbackSet) {
+            readCallbackSet = true;
+            serialPort.read(mCallback);
+        }
     }
 
     public void writeBlue() {
