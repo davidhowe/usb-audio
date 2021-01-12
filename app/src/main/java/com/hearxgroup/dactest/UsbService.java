@@ -244,7 +244,7 @@ public class UsbService extends Service {
     private class ConnectionThread extends Thread {
         @Override
         public void run() {
-            serialPort = new CP2615SerialDevice(device, connection, 6); //UsbSerialDevice.createUsbSerialDevice(device, connection);//new CP2102SerialDevice(device, connection, -1);//
+            serialPort = new CP2615SerialDevice(device, connection, -1); //UsbSerialDevice.createUsbSerialDevice(device, connection);//new CP2102SerialDevice(device, connection, -1);//
             if (serialPort != null) {
                 if (serialPort.open()) {
                     Log.d(TAG, "serialPort.open()");
@@ -304,10 +304,11 @@ public class UsbService extends Service {
         int[] blankInts = new int[command.length];
         Arrays.fill(blankInts, 0);
         byte[] buffer2 = buildI2CCommand(blankInts);
+        //connection.controlTransfer()
         //serialPort.write(buffer1);
         //serialPort.write(buffer2);
-        int syncWriteResult1 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer1, 15, 1500);
-        int syncWriteResult2 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer2, 64, 1500);
+        /*int syncWriteResult1 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer1, 15, 1500);
+        int syncWriteResult2 = connection.bulkTransfer(serialPort.getOutEndpoint(), buffer2, 64, 1500);*/
 
         /*Log.d(TAG, "syncWriteResult1 = "+syncWriteResult1);
         Log.d(TAG, "syncWriteResult2 = "+syncWriteResult2);*/

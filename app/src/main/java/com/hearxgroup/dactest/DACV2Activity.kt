@@ -1,8 +1,5 @@
 package com.hearxgroup.dactest
 
-import androidx.appcompat.app.AppCompatActivity
-
-import android.widget.Toast
 import android.content.*
 import android.media.AudioAttributes
 import android.media.AudioManager
@@ -10,9 +7,12 @@ import android.media.SoundPool
 import android.os.*
 import android.util.Log
 import android.widget.ArrayAdapter
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_dac_v2.*
 import java.io.File
 import java.lang.ref.WeakReference
+
 
 class DACV2Activity : AppCompatActivity() {
 
@@ -59,7 +59,8 @@ class DACV2Activity : AppCompatActivity() {
     private var attenuation = 0
     private var reg10 = 224
     private var reg1 = 208
-    private var soundId = 0
+    private var soundIdTone = 0
+    private var soundIdNoise = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,16 +80,30 @@ class DACV2Activity : AppCompatActivity() {
 
         soundPool!!.setOnLoadCompleteListener { soundPool, sampleId, status ->
             Log.d("", "sampleId=$sampleId")
-            Log.d("", "soundId=$soundId")
+            Log.d("", "soundIdTone=$soundIdTone")
 
-            if(soundId>0) {
-                soundPool!!.play(
-                    soundId,
-                    1.0f,
-                    1.0f,
-                    1,
-                    if(rbtn_loop.isChecked) -1 else 0,
-                    1.0f)
+            if(sampleId>0) {
+                if (sampleId == soundIdTone) {
+                    //Tone plays right channel
+                    soundPool!!.play(
+                        sampleId,
+                        1.0f,
+                        1.0f,
+                        1,
+                        if (rbtn_loop.isChecked) -1 else 0,
+                        1.0f
+                    )
+                } else if (sampleId == soundIdNoise) {
+                    //Noise plays left channel
+                    soundPool!!.play(
+                        sampleId,
+                        1.0f,
+                        0.0f,
+                        1,
+                        if (rbtn_loop.isChecked) -1 else 0,
+                        1.0f
+                    )
+                }
             }
         }
 
@@ -133,12 +148,34 @@ class DACV2Activity : AppCompatActivity() {
         }
 
         btn_play.setOnClickListener {
-            soundId = loadFileForPlayback(resources.getStringArray(R.array.array_freqs)[spin_freq.selectedItemPosition].toInt(), rbtn_low.isChecked)
+            Log.d(TAG, "btn_play clicked")
+            val masking = cbx_noise.isChecked
+            if(masking) {
+                soundIdNoise = loadMaskingFileForPlayback(resources.getStringArray(R.array.array_freqs)[spin_freq.selectedItemPosition].toInt())
+
+                object : CountDownTimer(3000, 1000) {
+                    override fun onTick(p0: Long) {
+                    }
+
+                    override fun onFinish() {
+                        soundIdTone = loadToneFileForPlayback(
+                            resources.getStringArray(R.array.array_freqs)[spin_freq.selectedItemPosition].toInt(),
+                            rbtn_low.isChecked
+                        )
+                    }
+
+                }.start()
+            } else {
+                soundIdTone = loadToneFileForPlayback(
+                    resources.getStringArray(R.array.array_freqs)[spin_freq.selectedItemPosition].toInt(),
+                    rbtn_low.isChecked
+                )
+            }
         }
 
         btn_pause.setOnClickListener {
-            if(soundId>0)
-                soundPool!!.stop(soundId)
+            if(soundIdTone>0)
+                soundPool!!.stop(soundIdTone)
         }
 
         //SETUP FREQ SPINNER
@@ -216,7 +253,7 @@ class DACV2Activity : AppCompatActivity() {
         private val mActivity: WeakReference<DACV2Activity> = WeakReference(activity)
 
         override fun handleMessage(msg: Message) {
-            Log.d("handleMessage","${msg.what}")
+            Log.d("handleMessage", "${msg.what}")
 
             when (msg.what) {
                 UsbService.MESSAGE_FROM_SERIAL_PORT -> {
@@ -273,7 +310,8 @@ class DACV2Activity : AppCompatActivity() {
     }
 
 
-    private fun loadFileForPlayback(freq: Int, low: Boolean) : Int {
+    private fun loadToneFileForPlayback(freq: Int, low: Boolean) : Int {
+        Log.d(TAG, "loadFileForPlayback")
         audioManager.setStreamVolume(
             AudioManager.STREAM_MUSIC,
             audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
@@ -281,8 +319,24 @@ class DACV2Activity : AppCompatActivity() {
         )
 
         val filePath = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_DCIM).toString()+ File.separator+"dacfiles"+File.separator+"f${freq}_${if(low)"low" else "high"}.ogg"
-        Log.d("","filePath=$filePath")
+            Environment.DIRECTORY_DCIM
+        ).toString()+ File.separator+"dacfiles"+File.separator+"f${freq}_${if(low)"low" else "high"}.ogg"
+        Log.d(TAG, "filePath=$filePath")
+        return soundPool!!.load(filePath, 1)
+    }
+
+    private fun loadMaskingFileForPlayback(freq: Int) : Int {
+        Log.d(TAG, "loadFileForPlayback")
+        audioManager.setStreamVolume(
+            AudioManager.STREAM_MUSIC,
+            audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+            0
+        )
+
+        val filePath = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_DCIM
+        ).toString()+ File.separator+"dacfiles"+File.separator+"tone_f3000hz_pos_55db.ogg"
+        Log.d(TAG, "filePath=$filePath")
         return soundPool!!.load(filePath, 1)
     }
 
